@@ -1,258 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Spin & Win</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Spin & Win – Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-  color:#fff;
-  text-align:center;
-}
-.container{padding:15px}
-input,select,button{
-  padding:10px;
-  margin:6px;
-  border:none;
-  border-radius:6px;
-  font-size:16px;
-}
-button{background:#ffcc00;font-weight:bold}
-#wheelBox{position:relative;width:260px;height:260px;margin:auto}
-#wheel{
-  width:260px;height:260px;border-radius:50%;
-  border:6px solid #fff;
-  background:conic-gradient(
-    #ff5252 0 72deg,
-    #ff9800 72 144deg,
-    #4caf50 144 216deg,
-    #03a9f4 216 288deg,
-    #9c27b0 288 360deg
-  );
-  transition:transform 4s ease-out;
-}
-.arrow{
-  position:absolute;top:-18px;left:50%;
-  transform:translateX(-50%);
-  border-left:12px solid transparent;
-  border-right:12px solid transparent;
-  border-bottom:24px solid #fff;
-}
-.box{
-  background:rgba(0,0,0,.3);
-  padding:10px;
-  border-radius:10px;
-  margin-top:10px;
-}
-.admin{
-  background:#000;
-  padding:10px;
-  border-radius:10px;
-  margin-top:15px;
-}
-</style>
+  <!-- Firebase v8 ONLY -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .box {
+      background: #222;
+      padding: 20px;
+      width: 320px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+    button {
+      background: gold;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
 </head>
 
 <body>
-<div class="container">
 
-<h2>🎯 Spin & Win</h2>
+<div class="box">
+  <h2>Login with OTP</h2>
 
-<!-- LOGIN -->
-<div id="loginSection">
-  <input id="phone" placeholder="+91XXXXXXXXXX"><br>
-  <button onclick="sendOTP()">Send OTP</button><br>
-  <input id="otp" placeholder="Enter OTP"><br>
-  <button onclick="verifyOTP()">Verify</button>
+  <input type="text" id="phone" placeholder="+91XXXXXXXXXX">
+  <button onclick="sendOTP()">Send OTP</button>
+
+  <input type="text" id="otp" placeholder="Enter OTP">
+  <button onclick="verifyOTP()">Verify OTP</button>
+
+  <div id="recaptcha-container"></div>
 </div>
-
-<div id="recaptcha-container"></div>
-
-<!-- GAME -->
-<div id="gameSection" style="display:none">
-
-  <h3>🎟 Tokens: <span id="tokens">0</span></h3>
-
-  <div id="wheelBox">
-    <div class="arrow"></div>
-    <div id="wheel"></div>
-  </div>
-
-  <div class="box">
-    <select id="chosen">
-      <option value="0">0</option>
-      <option value="2">2</option>
-      <option value="4">4</option>
-      <option value="6">6</option>
-      <option value="8">8</option>
-    </select>
-
-    <select id="bet">
-      <option value="50">50</option>
-      <option value="100">100</option>
-      <option value="500">500</option>
-    </select><br>
-
-    <button onclick="spin()">SPIN</button>
-    <p id="result"></p>
-  </div>
-
-  <!-- BUY TOKENS (MANUAL / UPI) -->
-  <div class="box">
-    <h4>🛒 Buy Tokens (UPI)</h4>
-    <p>Send payment to:</p>
-    <b>yourupi@bank</b>
-    <p>Then click request</p>
-    <button onclick="requestTopup(500)">Request 500 Tokens</button>
-    <button onclick="requestTopup(1000)">Request 1000 Tokens</button>
-    <button onclick="requestTopup(5000)">Request 5000 Tokens</button>
-  </div>
-
-  <!-- WITHDRAW -->
-  <div class="box">
-    <h4>💸 Withdraw</h4>
-    <input id="upi" placeholder="Your UPI ID">
-    <button onclick="withdraw()">Request Withdraw</button>
-  </div>
-
-  <button onclick="logout()">Logout</button>
-</div>
-
-<!-- ADMIN PANEL -->
-<div id="adminPanel" style="display:none" class="admin">
-  <h3>👑 Admin Panel</h3>
-  <button onclick="loadUsers()">Load Users</button>
-  <div id="users"></div>
-</div>
-
-</div>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-const firebaseConfig={
-  apiKey:"AIzaSyAq__wm_HU38MrY4ndT1G6xfz5uYmVRHwM",
-  authDomain:"spin-win-game-43e01.firebaseapp.com",
-  projectId:"spin-win-game-43e01",
-  appId:"1:252479339776:web:7ca76c10e248e1269907e5"
-};
-firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth();
-const db=firebase.firestore();
+  // 🔥 FIREBASE CONFIG (REPLACE WITH YOURS)
+  var firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    appId: "YOUR_APP_ID"
+  };
 
-window.recaptchaVerifier =
-  new firebase.auth.RecaptchaVerifier('recaptcha-container',{size:'invisible'});
+  firebase.initializeApp(firebaseConfig);
 
-const numbers=[0,2,4,6,8];
-let uid,tokens=0,userRole="user",vip=false;
+  // 🔐 reCAPTCHA
+  window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
+    'recaptcha-container',
+    {
+      size: 'invisible'
+    }
+  );
 
-// ---------- AUTH ----------
-function sendOTP(){
-  let p=phone.value;
-  if(!p.startsWith("+"))p="+91"+p;
-  auth.signInWithPhoneNumber(p,recaptchaVerifier)
-    .then(c=>window.confirmationResult=c);
-}
+  recaptchaVerifier.render();
 
-function verifyOTP(){
-  confirmationResult.confirm(otp.value).then(r=>{
-    db.collection("users").doc(r.user.uid).set({
-      tokens:500,
-      role:"user",
-      vip:false
-    },{merge:true});
-  });
-}
+  let confirmationResult;
 
-auth.onAuthStateChanged(async u=>{
-  if(!u)return;
-  uid=u.uid;
-  const d=(await db.collection("users").doc(uid).get()).data();
+  // 📩 SEND OTP
+  function sendOTP() {
+    var phoneNumber = document.getElementById("phone").value;
 
-  tokens=d.tokens||0;
-  userRole=d.role||"user";
-  vip=d.vip||false;
-
-  tokensSpan.innerText=tokens;
-  loginSection.style.display="none";
-  gameSection.style.display="block";
-  if(userRole==="admin")adminPanel.style.display="block";
-});
-
-// ---------- SPIN (HOUSE PROFIT LOGIC) ----------
-async function spin(){
-  const betAmt=+bet.value;
-  const chosenNum=+chosen.value;
-  if(tokens<betAmt){alert("Not enough tokens");return;}
-
-  // 🔥 ADMIN CONFIG
-  const cfgDoc=await db.collection("config").doc("game").get();
-  const cfg=cfgDoc.data()||{winChance:0.3,reward:20,vipBonus:0.1};
-
-  let winChance=cfg.winChance;
-  if(vip)winChance+=cfg.vipBonus;
-
-  tokens-=betAmt;
-  const win=Math.random()<winChance;
-  let resultNum;
-
-  if(win){
-    resultNum=chosenNum;
-    tokens+=betAmt+cfg.reward;
-    result.innerText="🎉 WIN "+resultNum;
-  }else{
-    const others=numbers.filter(n=>n!==chosenNum);
-    resultNum=others[Math.floor(Math.random()*others.length)];
-    result.innerText="❌ LOST "+resultNum;
+    firebase.auth().signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
+      .then(function (result) {
+        confirmationResult = result;
+        alert("OTP Sent Successfully");
+      })
+      .catch(function (error) {
+        alert(error.message);
+      });
   }
 
-  wheel.style.transform=`rotate(${720+72*numbers.indexOf(resultNum)}deg)`;
-  tokensSpan.innerText=tokens;
-  db.collection("users").doc(uid).update({tokens});
-}
+  // ✅ VERIFY OTP
+  function verifyOTP() {
+    var code = document.getElementById("otp").value;
 
-// ---------- REQUEST TOPUP ----------
-function requestTopup(amount){
-  db.collection("topups").add({
-    uid,amount,status:"pending",time:Date.now()
-  });
-  alert("Request sent. Wait for admin approval.");
-}
-
-// ---------- WITHDRAW ----------
-function withdraw(){
-  const upiId=upi.value;
-  if(tokens<500){alert("Min 500 tokens");return;}
-  db.collection("withdraws").add({
-    uid,upi:upiId,tokens,status:"pending",time:Date.now()
-  });
-  alert("Withdraw request sent");
-}
-
-// ---------- ADMIN ----------
-function loadUsers(){
-  db.collection("users").get().then(s=>{
-    users.innerHTML="";
-    s.forEach(d=>{
-      users.innerHTML+=`
-        <div>
-        ${d.id}<br>
-        Tokens:${d.data().tokens}
-        <button onclick="db.collection('users').doc('${d.id}').update({vip:true})">VIP</button>
-        <button onclick="db.collection('users').doc('${d.id}').update({tokens:1000})">+1000</button>
-        </div><hr>`;
-    });
-  });
-}
-
-function logout(){auth.signOut();location.reload();}
+    confirmationResult.confirm(code)
+      .then(function (result) {
+        alert("Login Successful");
+        window.location.href = "home.html";
+      })
+      .catch(function (error) {
+        alert("Wrong OTP");
+      });
+  }
 </script>
 
 </body>
