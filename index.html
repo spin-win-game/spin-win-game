@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spin & Win Game</title>
+
+<style>
+body {
+  text-align: center;
+  font-family: Arial;
+  background: #f2f2f2;
+}
+
+#wheel {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  border: 10px solid #333;
+  margin: 20px auto;
+  background: conic-gradient(
+    #ff7675 0deg 60deg,
+    #74b9ff 60deg 120deg,
+    #55efc4 120deg 180deg,
+    #ffeaa7 180deg 240deg,
+    #fd79a8 240deg 300deg,
+    #a29bfe 300deg 360deg
+  );
+}
+
+button {
+  padding: 12px 25px;
+  font-size: 18px;
+  background: green;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+#result {
+  font-size: 22px;
+  margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎡 Spin & Win</h1>
+
+<div id="wheel"></div>
+
+<button onclick="spin()">SPIN</button>
+
+<h2 id="result">Try your luck!</h2>
+
+<script>
+let points = [10, 20, 50, 100, 200, 500];
+
+function spin() {
+  let wheel = document.getElementById("wheel");
+  let randomDeg = Math.floor(2000 + Math.random() * 2000);
+  wheel.style.transition = "transform 4s ease-out";
+  wheel.style.transform = "rotate(" + randomDeg + "deg)";
+
+  let win = points[Math.floor(Math.random() * points.length)];
+
+  setTimeout(() => {
+    document.getElementById("result").innerText =
+      "🎉 You Won " + win + " Points!";
+  }, 4000);
+}
+</script>
+
+</body>
+</html>
