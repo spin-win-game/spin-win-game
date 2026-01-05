@@ -2,170 +2,188 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Spin & Win Game</title>
-
+<title>Spin & Win Pro Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 body{
   margin:0;
-  font-family: Arial;
-  background:#f2f2f2;
+  font-family:'Poppins',sans-serif;
+  background:radial-gradient(circle at top,#1b1b3a,#000);
+  color:#fff;
+  overflow-x:hidden;
 }
-
-/* GAME TITLE */
 header{
   text-align:center;
+  padding:20px;
   font-size:28px;
-  font-weight:bold;
-  padding:15px;
-  background:#222;
-  color:white;
+  font-weight:700;
+  background:linear-gradient(90deg,#ff0080,#7928ca);
+  box-shadow:0 4px 20px rgba(0,0,0,.6);
 }
-
-/* WALLET */
 #wallet{
   position:fixed;
-  top:70px;
-  left:15px;
-  background:white;
+  top:20px;
+  left:20px;
+  width:260px;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(10px);
+  border-radius:15px;
   padding:15px;
-  width:220px;
-  border-radius:10px;
-  box-shadow:0 0 10px #aaa;
-  font-size:15px;
+  box-shadow:0 0 30px rgba(0,255,255,.2);
 }
-
-/* MAIN AREA */
+#wallet h3{margin:0 0 10px;color:#00fff0}
+#wallet p{margin:6px 0;font-size:14px}
+#redeemBtn{
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+  background:linear-gradient(90deg,#ffd700,#ff9f00);
+}
 #game{
   margin-top:40px;
-  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
 }
-
-/* WHEEL */
-#wheel-container{
+#wheelBox{
   position:relative;
-  display:inline-block;
+  margin:40px 0;
 }
-
 #wheel{
-  width:300px;
-  height:300px;
+  width:340px;
+  height:340px;
   border-radius:50%;
-  border:12px solid #333;
+  border:12px solid #111;
   background:conic-gradient(
-    #ff7675 0deg 60deg,
-    #74b9ff 60deg 120deg,
-    #55efc4 120deg 180deg,
-    #ffeaa7 180deg 240deg,
-    #fd79a8 240deg 300deg,
-    #a29bfe 300deg 360deg
+    #ff595e 0deg 60deg,
+    #1982c4 60deg 120deg,
+    #6a4c93 120deg 180deg,
+    #ffca3a 180deg 240deg,
+    #8ac926 240deg 300deg,
+    #ff924c 300deg 360deg
   );
-  box-shadow:0 0 25px rgba(0,0,0,0.4);
+  box-shadow:0 0 60px rgba(255,0,255,.5);
+  transition:transform 4s cubic-bezier(.17,.67,.29,1);
 }
-
-/* POINTER */
 #pointer{
-  width:0;
-  height:0;
-  border-left:15px solid transparent;
-  border-right:15px solid transparent;
+  position:absolute;
+  top:-25px;
+  left:50%;
+  transform:translateX(-50%);
+  width:0;height:0;
+  border-left:18px solid transparent;
+  border-right:18px solid transparent;
   border-bottom:30px solid red;
-  margin:auto;
 }
-
-/* BUTTONS */
-button{
+#controls{
+  display:flex;
+  gap:15px;
+}
+button.action{
   padding:12px 30px;
-  font-size:18px;
-  margin:10px;
   border:none;
-  border-radius:6px;
+  border-radius:12px;
+  font-size:16px;
+  font-weight:600;
   cursor:pointer;
 }
-
-#spinBtn{background:green;color:white;}
-#refreshBtn{background:#444;color:white;}
-
-#result{
-  font-size:20px;
-  margin-top:10px;
+#spinBtn{background:#00c853;color:#fff}
+#refreshBtn{background:#555;color:#fff}
+#result{margin-top:20px;font-size:18px;color:#00fff0}
+input{
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  margin-bottom:15px;
+  width:220px;
+  text-align:center;
 }
 </style>
 </head>
-
 <body>
+<header>🎡 SPIN & WIN PRO GAME</header>
 
-<header>🎡 SPIN & WIN GAME</header>
-
-<!-- WALLET -->
 <div id="wallet">
-  👤 <b>Player:</b> <span id="playerNameShow">---</span><br><br>
-  💰 <b>Total Points:</b> <span id="totalPoints">0</span><br><br>
-  🎁 <b>Gift Card</b><br>
-  1000 Points = ₹100<br>
-  Status: <span id="giftStatus">Not Eligible</span>
+  <h3>💼 Wallet</h3>
+  <p>👤 Player: <span id="player">Guest</span></p>
+  <p>⭐ Points: <span id="points">0</span></p>
+  <p>🎁 Gift Card: 1000 pts = ₹100</p>
+  <p id="giftStatus">Status: ❌ Not Eligible</p>
+  <button id="redeemBtn" onclick="redeem()">Redeem Gift Card</button>
 </div>
 
-<!-- GAME -->
 <div id="game">
-
-<input type="text" id="playerName" placeholder="Enter your name">
-
-<div id="wheel-container">
-  <div id="pointer"></div>
-  <div id="wheel"></div>
+  <input id="nameInput" placeholder="Enter your name">
+  <div id="wheelBox">
+    <div id="pointer"></div>
+    <div id="wheel"></div>
+  </div>
+  <div id="controls">
+    <button class="action" id="spinBtn" onclick="spin()">SPIN</button>
+    <button class="action" id="refreshBtn" onclick="location.reload()">REFRESH</button>
+  </div>
+  <div id="result"></div>
 </div>
 
-<div>
-  <button id="spinBtn" onclick="spin()">SPIN</button>
-  <button id="refreshBtn" onclick="location.reload()">REFRESH</button>
-</div>
-
-<div id="result"></div>
-
-</div>
+<audio id="spinSound" src="https://assets.mixkit.co/sfx/preview/mixkit-slot-machine-spin-1930.mp3"></audio>
 
 <script>
-let values=[10,20,50,100,200];
-let total=localStorage.getItem("points")||0;
-let name=localStorage.getItem("name")||"";
-
-document.getElementById("totalPoints").innerText=total;
-document.getElementById("playerNameShow").innerText=name||"---";
-document.getElementById("playerName").value=name;
-
-checkGift();
+let total = Number(localStorage.getItem('points')) || 0;
+let angle = 0;
+document.getElementById('points').innerText = total;
 
 function spin(){
-  let pname=document.getElementById("playerName").value;
-  if(pname===""){alert("Enter name");return;}
+  const name = document.getElementById('nameInput').value || 'Guest';
+  document.getElementById('player').innerText = name;
 
-  localStorage.setItem("name",pname);
-  document.getElementById("playerNameShow").innerText=pname;
+  const spinSound = document.getElementById('spinSound');
+  spinSound.play();
 
-  let wheel=document.getElementById("wheel");
-  let deg=2000+Math.random()*2000;
-  wheel.style.transition="transform 4s ease-out";
-  wheel.style.transform="rotate("+deg+"deg)";
+  const prize = [10,20,50,100,200,500];
+  const win = prize[Math.floor(Math.random()*prize.length)];
 
-  let win=values[Math.floor(Math.random()*values.length)];
+  angle += 1440 + Math.floor(Math.random()*360);
+  document.getElementById('wheel').style.transform = `rotate(${angle}deg)`;
 
   setTimeout(()=>{
-    total=parseInt(total)+win;
-    localStorage.setItem("points",total);
-    document.getElementById("totalPoints").innerText=total;
-    document.getElementById("result").innerText="🎉 You won "+win+" points!";
+    total += win;
+    localStorage.setItem('points', total);
+    document.getElementById('points').innerText = total;
+    document.getElementById('result').innerText = `🎉 You won ${win} points!`;
     checkGift();
   },4000);
 }
 
 function checkGift(){
+  const status = document.getElementById('giftStatus');
   if(total>=1000){
-    document.getElementById("giftStatus").innerText="Eligible ✅";
-  }else{
-    document.getElementById("giftStatus").innerText="Not Eligible ❌";
+    status.innerText = 'Status: ✅ Eligible';
+    status.style.color = '#00ff99';
+  } else {
+    status.innerText = 'Status: ❌ Not Eligible';
+    status.style.color = 'red';
   }
 }
-</script>
 
+function redeem(){
+  if(total<1000){
+    alert('Not enough points');
+    return;
+  }
+  total-=1000;
+  localStorage.setItem('points', total);
+  document.getElementById('points').innerText = total;
+  alert('🎁 Gift card redeemed (Demo)');
+  checkGift();
+}
+
+checkGift();
+</script>
 </body>
 </html>
