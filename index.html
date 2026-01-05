@@ -1,189 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Spin & Win Pro Game</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-body{
-  margin:0;
-  font-family:'Poppins',sans-serif;
-  background:radial-gradient(circle at top,#1b1b3a,#000);
-  color:#fff;
-  overflow-x:hidden;
-}
-header{
-  text-align:center;
-  padding:20px;
-  font-size:28px;
-  font-weight:700;
-  background:linear-gradient(90deg,#ff0080,#7928ca);
-  box-shadow:0 4px 20px rgba(0,0,0,.6);
-}
-#wallet{
-  position:fixed;
-  top:20px;
-  left:20px;
-  width:260px;
-  background:rgba(0,0,0,.6);
-  backdrop-filter:blur(10px);
-  border-radius:15px;
-  padding:15px;
-  box-shadow:0 0 30px rgba(0,255,255,.2);
-}
-#wallet h3{margin:0 0 10px;color:#00fff0}
-#wallet p{margin:6px 0;font-size:14px}
-#redeemBtn{
-  width:100%;
-  margin-top:10px;
-  padding:10px;
-  border:none;
-  border-radius:10px;
-  font-size:15px;
-  font-weight:600;
-  cursor:pointer;
-  background:linear-gradient(90deg,#ffd700,#ff9f00);
-}
-#game{
-  margin-top:40px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-#wheelBox{
-  position:relative;
-  margin:40px 0;
-}
-#wheel{
-  width:340px;
-  height:340px;
-  border-radius:50%;
-  border:12px solid #111;
-  background:conic-gradient(
-    #ff595e 0deg 60deg,
-    #1982c4 60deg 120deg,
-    #6a4c93 120deg 180deg,
-    #ffca3a 180deg 240deg,
-    #8ac926 240deg 300deg,
-    #ff924c 300deg 360deg
-  );
-  box-shadow:0 0 60px rgba(255,0,255,.5);
-  transition:transform 4s cubic-bezier(.17,.67,.29,1);
-}
-#pointer{
-  position:absolute;
-  top:-25px;
-  left:50%;
-  transform:translateX(-50%);
-  width:0;height:0;
-  border-left:18px solid transparent;
-  border-right:18px solid transparent;
-  border-bottom:30px solid red;
-}
-#controls{
-  display:flex;
-  gap:15px;
-}
-button.action{
-  padding:12px 30px;
-  border:none;
-  border-radius:12px;
-  font-size:16px;
-  font-weight:600;
-  cursor:pointer;
-}
-#spinBtn{background:#00c853;color:#fff}
-#refreshBtn{background:#555;color:#fff}
-#result{margin-top:20px;font-size:18px;color:#00fff0}
-input{
-  padding:10px;
-  border-radius:8px;
-  border:none;
-  margin-bottom:15px;
-  width:220px;
-  text-align:center;
-}
-</style>
+  <meta charset="UTF-8" />
+  <title>Spin & Win Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
-<body>
-<header>🎡 SPIN & WIN PRO GAME</header>
 
-<div id="wallet">
-  <h3>💼 Wallet</h3>
-  <p>👤 Player: <span id="player">Guest</span></p>
-  <p>⭐ Points: <span id="points">0</span></p>
-  <p>🎁 Gift Card: 1000 pts = ₹100</p>
-  <p id="giftStatus">Status: ❌ Not Eligible</p>
-  <button id="redeemBtn" onclick="redeem()">Redeem Gift Card</button>
-</div>
+<body style="font-family: Arial; padding: 20px;">
 
-<div id="game">
-  <input id="nameInput" placeholder="Enter your name">
-  <div id="wheelBox">
-    <div id="pointer"></div>
-    <div id="wheel"></div>
+  <h1>🎯 Spin & Win Game</h1>
+
+  <!-- LOGIN SECTION -->
+  <div id="loginSection">
+    <input type="text" id="phone" placeholder="+91XXXXXXXXXX" />
+    <button onclick="sendOTP()">Send OTP</button><br><br>
+
+    <input type="text" id="otp" placeholder="Enter OTP" />
+    <button onclick="verifyOTP()">Verify OTP</button>
   </div>
-  <div id="controls">
-    <button class="action" id="spinBtn" onclick="spin()">SPIN</button>
-    <button class="action" id="refreshBtn" onclick="location.reload()">REFRESH</button>
+
+  <div id="recaptcha-container"></div>
+
+  <!-- USER INFO -->
+  <div id="userSection" style="display:none;">
+    <h3>Welcome 🎉</h3>
+    <p id="userPhone"></p>
+    <button onclick="logout()">Logout</button>
   </div>
-  <div id="result"></div>
-</div>
 
-<audio id="spinSound" src="https://assets.mixkit.co/sfx/preview/mixkit-slot-machine-spin-1930.mp3"></audio>
+  <!-- ADMIN PANEL -->
+  <div id="adminPanel" style="display:none; margin-top:30px;">
+    <h2>👑 Admin Panel</h2>
+    <button onclick="loadUsers()">Load Users</button>
+    <div id="users"></div>
+  </div>
 
-<script>
-let total = Number(localStorage.getItem('points')) || 0;
-let angle = 0;
-document.getElementById('points').innerText = total;
+  <!-- FIREBASE SDKs (CDN) -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-function spin(){
-  const name = document.getElementById('nameInput').value || 'Guest';
-  document.getElementById('player').innerText = name;
+  <script>
+    // 🔥 YOUR FIREBASE CONFIG
+    const firebaseConfig = {
+      apiKey: "AIzaSyAq__wm_HU38MrY4ndT1G6xfz5uYmVRHwM",
+      authDomain: "spin-win-game-43e01.firebaseapp.com",
+      projectId: "spin-win-game-43e01",
+      storageBucket: "spin-win-game-43e01.firebasestorage.app",
+      messagingSenderId: "252479339776",
+      appId: "1:252479339776:web:7ca76c10e248e1269907e5"
+    };
 
-  const spinSound = document.getElementById('spinSound');
-  spinSound.play();
+    // INIT FIREBASE
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-  const prize = [10,20,50,100,200,500];
-  const win = prize[Math.floor(Math.random()*prize.length)];
+    // RECAPTCHA
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
+      'recaptcha-container',
+      { size: 'invisible' }
+    );
 
-  angle += 1440 + Math.floor(Math.random()*360);
-  document.getElementById('wheel').style.transform = `rotate(${angle}deg)`;
+    // SEND OTP
+    function sendOTP() {
+      const phone = document.getElementById("phone").value;
+      auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
+        .then((confirmationResult) => {
+          window.confirmationResult = confirmationResult;
+          alert("OTP Sent");
+        })
+        .catch(alert);
+    }
 
-  setTimeout(()=>{
-    total += win;
-    localStorage.setItem('points', total);
-    document.getElementById('points').innerText = total;
-    document.getElementById('result').innerText = `🎉 You won ${win} points!`;
-    checkGift();
-  },4000);
-}
+    // VERIFY OTP
+    function verifyOTP() {
+      const otp = document.getElementById("otp").value;
+      confirmationResult.confirm(otp).then((result) => {
+        saveUser(result.user);
+      }).catch(alert);
+    }
 
-function checkGift(){
-  const status = document.getElementById('giftStatus');
-  if(total>=1000){
-    status.innerText = 'Status: ✅ Eligible';
-    status.style.color = '#00ff99';
-  } else {
-    status.innerText = 'Status: ❌ Not Eligible';
-    status.style.color = 'red';
-  }
-}
+    // SAVE USER
+    function saveUser(user) {
+      db.collection("users").doc(user.uid).set({
+        phone: user.phoneNumber,
+        uid: user.uid,
+        role: "user",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    }
 
-function redeem(){
-  if(total<1000){
-    alert('Not enough points');
-    return;
-  }
-  total-=1000;
-  localStorage.setItem('points', total);
-  document.getElementById('points').innerText = total;
-  alert('🎁 Gift card redeemed (Demo)');
-  checkGift();
-}
+    // AUTH STATE
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) return;
 
-checkGift();
-</script>
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("userSection").style.display = "block";
+      document.getElementById("userPhone").innerText = user.phoneNumber;
+
+      const doc = await db.collection("users").doc(user.uid).get();
+      if (doc.exists && doc.data().role === "admin") {
+        document.getElementById("adminPanel").style.display = "block";
+      }
+    });
+
+    // LOAD USERS (ADMIN)
+    function loadUsers() {
+      db.collection("users").get().then(snapshot => {
+        let html = "";
+        snapshot.forEach(doc => {
+          html += `<p>${doc.data().phone} | ${doc.data().role}</p>`;
+        });
+        document.getElementById("users").innerHTML = html;
+      });
+    }
+
+    // LOGOUT
+    function logout() {
+      auth.signOut();
+      location.reload();
+    }
+  </script>
+
 </body>
 </html>
