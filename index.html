@@ -5,35 +5,53 @@
 <title>Spin & Win Game</title>
 
 <style>
-body {
-  text-align: center;
+body{
+  margin:0;
   font-family: Arial;
-  background: #f2f2f2;
+  background:#f2f2f2;
 }
 
-input {
-  padding: 8px;
-  font-size: 16px;
-  margin: 10px;
+/* GAME TITLE */
+header{
+  text-align:center;
+  font-size:28px;
+  font-weight:bold;
+  padding:15px;
+  background:#222;
+  color:white;
 }
 
-#wallet {
-  background: white;
-  display: inline-block;
-  padding: 15px 25px;
-  border-radius: 8px;
-  margin: 15px;
-  font-size: 18px;
-  box-shadow: 0 0 10px #ccc;
+/* WALLET */
+#wallet{
+  position:fixed;
+  top:70px;
+  left:15px;
+  background:white;
+  padding:15px;
+  width:220px;
+  border-radius:10px;
+  box-shadow:0 0 10px #aaa;
+  font-size:15px;
 }
 
-#wheel {
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  border: 10px solid #333;
-  margin: 20px auto;
-  background: conic-gradient(
+/* MAIN AREA */
+#game{
+  margin-top:40px;
+  text-align:center;
+}
+
+/* WHEEL */
+#wheel-container{
+  position:relative;
+  display:inline-block;
+}
+
+#wheel{
+  width:300px;
+  height:300px;
+  border-radius:50%;
+  border:12px solid #333;
+  background:conic-gradient(
     #ff7675 0deg 60deg,
     #74b9ff 60deg 120deg,
     #55efc4 120deg 180deg,
@@ -41,79 +59,111 @@ input {
     #fd79a8 240deg 300deg,
     #a29bfe 300deg 360deg
   );
+  box-shadow:0 0 25px rgba(0,0,0,0.4);
 }
 
-button {
-  padding: 12px 25px;
-  font-size: 18px;
-  background: green;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+/* POINTER */
+#pointer{
+  width:0;
+  height:0;
+  border-left:15px solid transparent;
+  border-right:15px solid transparent;
+  border-bottom:30px solid red;
+  margin:auto;
 }
 
-#result {
-  font-size: 22px;
-  margin-top: 15px;
+/* BUTTONS */
+button{
+  padding:12px 30px;
+  font-size:18px;
+  margin:10px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+#spinBtn{background:green;color:white;}
+#refreshBtn{background:#444;color:white;}
+
+#result{
+  font-size:20px;
+  margin-top:10px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🎡 Spin & Win</h1>
+<header>🎡 SPIN & WIN GAME</header>
+
+<!-- WALLET -->
+<div id="wallet">
+  👤 <b>Player:</b> <span id="playerNameShow">---</span><br><br>
+  💰 <b>Total Points:</b> <span id="totalPoints">0</span><br><br>
+  🎁 <b>Gift Card</b><br>
+  1000 Points = ₹100<br>
+  Status: <span id="giftStatus">Not Eligible</span>
+</div>
+
+<!-- GAME -->
+<div id="game">
 
 <input type="text" id="playerName" placeholder="Enter your name">
 
-<div id="wallet">
-  👤 Player: <span id="name">---</span><br>
-  💰 Total Points: <span id="total">0</span>
+<div id="wheel-container">
+  <div id="pointer"></div>
+  <div id="wheel"></div>
 </div>
 
-<div id="wheel"></div>
+<div>
+  <button id="spinBtn" onclick="spin()">SPIN</button>
+  <button id="refreshBtn" onclick="location.reload()">REFRESH</button>
+</div>
 
-<button onclick="spin()">SPIN</button>
+<div id="result"></div>
 
-<h2 id="result"></h2>
-
-<p>🎁 <b>Gift Card Rule:</b> 1000 Points = ₹100 Gift Card</p>
+</div>
 
 <script>
-let pointsArray = [10, 20, 50, 100, 200];
-let totalPoints = localStorage.getItem("totalPoints") || 0;
-let savedName = localStorage.getItem("playerName") || "";
+let values=[10,20,50,100,200];
+let total=localStorage.getItem("points")||0;
+let name=localStorage.getItem("name")||"";
 
-document.getElementById("total").innerText = totalPoints;
-document.getElementById("name").innerText = savedName || "---";
-document.getElementById("playerName").value = savedName;
+document.getElementById("totalPoints").innerText=total;
+document.getElementById("playerNameShow").innerText=name||"---";
+document.getElementById("playerName").value=name;
 
-function spin() {
-  let nameInput = document.getElementById("playerName").value;
+checkGift();
 
-  if (nameInput === "") {
-    alert("Please enter your name");
-    return;
+function spin(){
+  let pname=document.getElementById("playerName").value;
+  if(pname===""){alert("Enter name");return;}
+
+  localStorage.setItem("name",pname);
+  document.getElementById("playerNameShow").innerText=pname;
+
+  let wheel=document.getElementById("wheel");
+  let deg=2000+Math.random()*2000;
+  wheel.style.transition="transform 4s ease-out";
+  wheel.style.transform="rotate("+deg+"deg)";
+
+  let win=values[Math.floor(Math.random()*values.length)];
+
+  setTimeout(()=>{
+    total=parseInt(total)+win;
+    localStorage.setItem("points",total);
+    document.getElementById("totalPoints").innerText=total;
+    document.getElementById("result").innerText="🎉 You won "+win+" points!";
+    checkGift();
+  },4000);
+}
+
+function checkGift(){
+  if(total>=1000){
+    document.getElementById("giftStatus").innerText="Eligible ✅";
+  }else{
+    document.getElementById("giftStatus").innerText="Not Eligible ❌";
   }
-
-  localStorage.setItem("playerName", nameInput);
-  document.getElementById("name").innerText = nameInput;
-
-  let wheel = document.getElementById("wheel");
-  let randomDeg = Math.floor(2000 + Math.random() * 2000);
-  wheel.style.transition = "transform 4s ease-out";
-  wheel.style.transform = "rotate(" + randomDeg + "deg)";
-
-  let win = pointsArray[Math.floor(Math.random() * pointsArray.length)];
-
-  setTimeout(() => {
-    totalPoints = parseInt(totalPoints) + win;
-    localStorage.setItem("totalPoints", totalPoints);
-    document.getElementById("total").innerText = totalPoints;
-
-    document.getElementById("result").innerText =
-      "🎉 You won " + win + " points!";
-  }, 4000);
 }
 </script>
 
