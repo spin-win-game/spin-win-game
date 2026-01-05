@@ -2,126 +2,178 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Spin & Win Game</title>
+  <title>Spin & Win</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1d2671, #c33764);
+      color: #fff;
+      text-align: center;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    input, button {
+      padding: 12px;
+      margin: 8px;
+      width: 80%;
+      max-width: 300px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+    }
+
+    button {
+      background: #ffcc00;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #wheel {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      border: 8px solid #fff;
+      margin: 20px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: bold;
+      background: #ff5722;
+      transition: transform 3s ease-out;
+    }
+
+    .wallet {
+      font-size: 20px;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 
-<body style="font-family: Arial; padding: 20px;">
+<body>
 
-  <h1>🎯 Spin & Win Game</h1>
+<div class="container">
 
-  <!-- LOGIN SECTION -->
+  <h1>🎯 Spin & Win</h1>
+
+  <!-- LOGIN -->
   <div id="loginSection">
-    <input type="text" id="phone" placeholder="+91XXXXXXXXXX" />
-    <button onclick="sendOTP()">Send OTP</button><br><br>
-
-    <input type="text" id="otp" placeholder="Enter OTP" />
+    <input type="text" id="phone" placeholder="+91XXXXXXXXXX">
+    <button onclick="sendOTP()">Send OTP</button><br>
+    <input type="text" id="otp" placeholder="Enter OTP">
     <button onclick="verifyOTP()">Verify OTP</button>
   </div>
 
   <div id="recaptcha-container"></div>
 
-  <!-- USER INFO -->
-  <div id="userSection" style="display:none;">
-    <h3>Welcome 🎉</h3>
+  <!-- GAME -->
+  <div id="gameSection" style="display:none;">
+    <h2>Welcome</h2>
     <p id="userPhone"></p>
+
+    <div class="wallet">
+      💰 Wallet Balance: <span id="wallet">0</span> Points
+    </div>
+
+    <div id="wheel">SPIN</div>
+    <button onclick="spin()">Spin Now</button>
+
+    <p id="result"></p>
     <button onclick="logout()">Logout</button>
   </div>
 
-  <!-- ADMIN PANEL -->
-  <div id="adminPanel" style="display:none; margin-top:30px;">
-    <h2>👑 Admin Panel</h2>
-    <button onclick="loadUsers()">Load Users</button>
-    <div id="users"></div>
-  </div>
+</div>
 
-  <!-- FIREBASE SDKs (CDN) -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-  <script>
-    // 🔥 YOUR FIREBASE CONFIG
-    const firebaseConfig = {
-      apiKey: "AIzaSyAq__wm_HU38MrY4ndT1G6xfz5uYmVRHwM",
-      authDomain: "spin-win-game-43e01.firebaseapp.com",
-      projectId: "spin-win-game-43e01",
-      storageBucket: "spin-win-game-43e01.firebasestorage.app",
-      messagingSenderId: "252479339776",
-      appId: "1:252479339776:web:7ca76c10e248e1269907e5"
-    };
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAq__wm_HU38MrY4ndT1G6xfz5uYmVRHwM",
+    authDomain: "spin-win-game-43e01.firebaseapp.com",
+    projectId: "spin-win-game-43e01",
+    storageBucket: "spin-win-game-43e01.firebasestorage.app",
+    messagingSenderId: "252479339776",
+    appId: "1:252479339776:web:7ca76c10e248e1269907e5"
+  };
 
-    // INIT FIREBASE
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-    // RECAPTCHA
-    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
-      'recaptcha-container',
-      { size: 'invisible' }
-    );
+  window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
+    'recaptcha-container',
+    { size: 'invisible' }
+  );
 
-    // SEND OTP
-    function sendOTP() {
-      const phone = document.getElementById("phone").value;
-      auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
-        .then((confirmationResult) => {
-          window.confirmationResult = confirmationResult;
-          alert("OTP Sent");
-        })
-        .catch(alert);
-    }
+  function sendOTP() {
+    let phone = document.getElementById("phone").value;
+    if (!phone.startsWith("+")) phone = "+91" + phone;
 
-    // VERIFY OTP
-    function verifyOTP() {
-      const otp = document.getElementById("otp").value;
-      confirmationResult.confirm(otp).then((result) => {
-        saveUser(result.user);
+    auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
+      .then(c => {
+        window.confirmationResult = c;
+        alert("OTP sent");
       }).catch(alert);
-    }
+  }
 
-    // SAVE USER
-    function saveUser(user) {
-      db.collection("users").doc(user.uid).set({
-        phone: user.phoneNumber,
-        uid: user.uid,
-        role: "user",
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
-    }
+  function verifyOTP() {
+    confirmationResult.confirm(document.getElementById("otp").value)
+      .then(r => saveUser(r.user))
+      .catch(alert);
+  }
 
-    // AUTH STATE
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) return;
+  function saveUser(user) {
+    db.collection("users").doc(user.uid).set({
+      phone: user.phoneNumber,
+      wallet: 0
+    }, { merge: true });
+  }
 
-      document.getElementById("loginSection").style.display = "none";
-      document.getElementById("userSection").style.display = "block";
-      document.getElementById("userPhone").innerText = user.phoneNumber;
+  let currentUser, wallet = 0;
 
-      const doc = await db.collection("users").doc(user.uid).get();
-      if (doc.exists && doc.data().role === "admin") {
-        document.getElementById("adminPanel").style.display = "block";
-      }
+  auth.onAuthStateChanged(async user => {
+    if (!user) return;
+    currentUser = user;
+
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("gameSection").style.display = "block";
+    document.getElementById("userPhone").innerText = user.phoneNumber;
+
+    const doc = await db.collection("users").doc(user.uid).get();
+    wallet = doc.data().wallet || 0;
+    document.getElementById("wallet").innerText = wallet;
+  });
+
+  function spin() {
+    const reward = Math.floor(Math.random() * 50) + 10; // 10–60 points
+    wallet += reward;
+
+    document.getElementById("wallet").innerText = wallet;
+    document.getElementById("result").innerText = `You won ${reward} points!`;
+
+    const wheel = document.getElementById("wheel");
+    wheel.style.transform = `rotate(${Math.floor(Math.random() * 360 + 720)}deg)`;
+
+    db.collection("users").doc(currentUser.uid).update({
+      wallet: wallet
     });
+  }
 
-    // LOAD USERS (ADMIN)
-    function loadUsers() {
-      db.collection("users").get().then(snapshot => {
-        let html = "";
-        snapshot.forEach(doc => {
-          html += `<p>${doc.data().phone} | ${doc.data().role}</p>`;
-        });
-        document.getElementById("users").innerHTML = html;
-      });
-    }
-
-    // LOGOUT
-    function logout() {
-      auth.signOut();
-      location.reload();
-    }
-  </script>
+  function logout() {
+    auth.signOut();
+    location.reload();
+  }
+</script>
 
 </body>
 </html>
