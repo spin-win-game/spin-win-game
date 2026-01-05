@@ -11,6 +11,22 @@ body {
   background: #f2f2f2;
 }
 
+input {
+  padding: 8px;
+  font-size: 16px;
+  margin: 10px;
+}
+
+#wallet {
+  background: white;
+  display: inline-block;
+  padding: 15px 25px;
+  border-radius: 8px;
+  margin: 15px;
+  font-size: 18px;
+  box-shadow: 0 0 10px #ccc;
+}
+
 #wheel {
   width: 300px;
   height: 300px;
@@ -34,11 +50,12 @@ button {
   color: white;
   border: none;
   border-radius: 5px;
+  cursor: pointer;
 }
 
 #result {
   font-size: 22px;
-  margin-top: 20px;
+  margin-top: 15px;
 }
 </style>
 </head>
@@ -47,26 +64,55 @@ button {
 
 <h1>🎡 Spin & Win</h1>
 
+<input type="text" id="playerName" placeholder="Enter your name">
+
+<div id="wallet">
+  👤 Player: <span id="name">---</span><br>
+  💰 Total Points: <span id="total">0</span>
+</div>
+
 <div id="wheel"></div>
 
 <button onclick="spin()">SPIN</button>
 
-<h2 id="result">Try your luck!</h2>
+<h2 id="result"></h2>
+
+<p>🎁 <b>Gift Card Rule:</b> 1000 Points = ₹100 Gift Card</p>
 
 <script>
-let points = [10, 20, 50, 100, 200, 500];
+let pointsArray = [10, 20, 50, 100, 200];
+let totalPoints = localStorage.getItem("totalPoints") || 0;
+let savedName = localStorage.getItem("playerName") || "";
+
+document.getElementById("total").innerText = totalPoints;
+document.getElementById("name").innerText = savedName || "---";
+document.getElementById("playerName").value = savedName;
 
 function spin() {
+  let nameInput = document.getElementById("playerName").value;
+
+  if (nameInput === "") {
+    alert("Please enter your name");
+    return;
+  }
+
+  localStorage.setItem("playerName", nameInput);
+  document.getElementById("name").innerText = nameInput;
+
   let wheel = document.getElementById("wheel");
   let randomDeg = Math.floor(2000 + Math.random() * 2000);
   wheel.style.transition = "transform 4s ease-out";
   wheel.style.transform = "rotate(" + randomDeg + "deg)";
 
-  let win = points[Math.floor(Math.random() * points.length)];
+  let win = pointsArray[Math.floor(Math.random() * pointsArray.length)];
 
   setTimeout(() => {
+    totalPoints = parseInt(totalPoints) + win;
+    localStorage.setItem("totalPoints", totalPoints);
+    document.getElementById("total").innerText = totalPoints;
+
     document.getElementById("result").innerText =
-      "🎉 You Won " + win + " Points!";
+      "🎉 You won " + win + " points!";
   }, 4000);
 }
 </script>
